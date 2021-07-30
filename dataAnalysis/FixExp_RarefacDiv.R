@@ -5,10 +5,6 @@
 
 # This script: calculate rarefaction and diversity indices 
 
-setwd("/AWI_MPI/FRAM/FixativeExp/Rstats")
-load("FixExp.Rdata")
-
-# Load packages
 library(iNEXT)
 library(phyloseq)
 library(olsrr)
@@ -222,10 +218,3 @@ ncol = 2)
 rm(richness, simpson, shannon)
 rm(list = ls(pattern =
    "cover.point.*|cover.line.*|rarefac.point.*|rarefac.line.*"))
-
-############################################################################################
-
-save.image("FixExp.Rdata")
-
-############################################################################################
-

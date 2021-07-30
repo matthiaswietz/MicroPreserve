@@ -5,10 +5,6 @@
 
 # This script: load / format amplicons and metadata
 
-setwd("D:/AWI_MPI/FRAM/FixativeExp/Rstats")
-load("FixExp.Rdata")
-
-# Load packages and colors
 library(gtools)
 library(dplyr)
 library(phyloseq)
@@ -183,7 +179,7 @@ colnames(pseq.euk.abs@tax_table) <- c(
   "Kingdom","Phylum","Class","Order",
   "Family","Genus","Species")
 
-############################################################################################
+####################################
 
 ## transform to rel. abundance
 
@@ -223,7 +219,7 @@ ampvis.euk <- amp_load(ampvis.euk, euk.env)
 
 
 ############################################################################################
-   ### set plotting colors ###
+   ### Set plotting colors ###
 ############################################################################################
   
 colors <- c(
@@ -236,6 +232,3 @@ colors <- c(
 
 # remove temporary datasets
 rm(asv, tax, euk.env, bac.env)
-
-save.image("FixExp.Rdata")
-

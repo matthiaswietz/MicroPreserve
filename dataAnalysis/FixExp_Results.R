@@ -164,7 +164,6 @@ envtype1 <- get_variable(pseq.bac.abs, "treatment")
 envtype2 <- get_variable(pseq.euk.abs, "treatment") 
 
 ## Map sample type to color 
-
 tipColor1 <- col_factor(
   colors, levels= levels(envtype1))(envtype1) 
 tipColor2 <- col_factor(
@@ -210,12 +209,10 @@ axisPhylo()
 
 
 ############################################################################################
-   ###  TOP TAXA  ###
+   ###  TOP TAXA -- class level ###
 ############################################################################################
 
-## BAC + EUK -- CLASS LEVEL
-
-plot.tax1 <- amp_heatmap(
+ amp_heatmap(
   ampvis.bac,
  tax_aggregate = "Class",
  tax_show = c(
@@ -248,7 +245,7 @@ theme(
 theme(axis.text = element_text(size=9),
       axis.ticks = element_blank())
 
-plot.tax2 <- amp_heatmap(ampvis.euk, 
+amp_heatmap(ampvis.euk, 
   tax_aggregate = "Class",
   tax_show = 11,
   normalise = T,
@@ -275,13 +272,6 @@ theme(
   axis.ticks = element_blank())
 theme(axis.text = element_text(size=9),
     axis.ticks = element_blank())
-
-plot_grid(
-  plot.tax1,
-  plot.tax2,
-  ncol=1,
-  align="h",
-  axis="lr")
 
 #########################################################
 
@@ -599,7 +589,9 @@ aes(x=factor(time), y=freq,
 geom_point(size=3) +
 geom_line(size=1) +
 scale_x_discrete(expand = c(0.08,0.08)) +
-scale_y_continuous(n.breaks=4) +
+scale_y_continuous(
+  n.breaks=4,
+  expand = c(0.08,0.08)) +
 ylab("Sequence number") +
 facet_grid(
   tax~treatment, scales="free") +
@@ -621,7 +613,9 @@ aes(x=factor(time), y=freq,
 geom_point(size=3) +
 geom_line(size=1) +
 scale_x_discrete(expand = c(0.08,0.08)) +
-scale_y_continuous(n.breaks=4) +
+scale_y_continuous(
+  n.breaks=4,
+  expand = c(0.08,0.08)) +
 ylab("Sequence number") +
 facet_grid(
   tax~treatment, scales="free") +

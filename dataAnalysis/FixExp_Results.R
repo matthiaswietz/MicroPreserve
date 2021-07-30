@@ -5,10 +5,6 @@
 
 # This script: plotting of results 
 
-setwd("/AWI_MPI/FRAM/FixativeExp/Rstats")
-load("FixExp.Rdata")
-
-# load packages and colors
 library(phyloseq)
 library(ampvis2)
 library(vegan)
@@ -22,12 +18,13 @@ library(PMCMRplus)
 library(ape)
 library(scales)
 
+
 ###################################################################################
-   ###  DNA extraction  ###
+   ###  DNA YIELDS  ###
 ###################################################################################
 
 ggplot(ENV, 
-  aes(x=time, y=DNA_ng_µL, fill=treatment)) +
+  aes(x=time, y=DNA_ng_ÂµL, fill=treatment)) +
   geom_boxplot() + 
   scale_fill_manual(values=colors) +
   facet_grid(
@@ -641,5 +638,7 @@ theme(axis.text.y = element_text(size=10),
 
 ##############################################
 
-save.image("FixExp.Rdata")
-
+# remove temp-data
+rm(count1,count2,count3,count4,
+   count5,count6,count7,count8,
+   count9,count10,count11)

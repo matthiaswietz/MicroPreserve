@@ -4,6 +4,7 @@ This repo describes the amplicon-seq workflow from Metfies et al. (url). We here
 
 Contents
 
-- Rmarkdowns describing primer clipping and OTU classification
-- Resulting [OTU / taxonomy tables](.
-- Rscripts and metadata to reproduce analyses and figures
+- Scripts describing primer clipping and OTU classification
+- Processed [bacterial OTUs](./amplicons/bac_otu.txt) and [taxonomy](./amplicons/bac_tax.txt)
+- Processed [eukaryotic OTUs](./amplicons/euk_otu.txt) and [taxonomy](./amplicons/euk_tax.txt)
+- [Rscripts](./dataAnalysis) and [metadata](./amplicons/metadata.txt) to reproduce analyses and figures

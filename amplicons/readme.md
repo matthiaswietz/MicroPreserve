@@ -1,1 +1,1 @@
-This directory contains the OTU analysis workflow, based on programs listed in the [dockerfile](./dockerfile). The commands in the "qzip" files, run on the raw fastq files inside a directory of choice, results in the shown bacterial / eukaryotic OTU and taxonomy data.
+This directory contains the OTU analysis workflow, based on programs listed in the [dockerfile](./dockerfile.txt). The commands in the "qzip" files, run on the raw fastq files inside a directory of choice, results in the shown bacterial / eukaryotic OTU and taxonomy data.

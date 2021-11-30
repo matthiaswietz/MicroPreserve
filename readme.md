@@ -7,4 +7,4 @@ Contents
 - [Scripts](./amplicons) describing primer clipping and OTU classification
 - Processed [bacterial OTUs](./amplicons/bac_otu.txt) and [taxonomy](./amplicons/bac_tax.txt)
 - Processed [eukaryotic OTUs](./amplicons/euk_otu.txt) and [taxonomy](./amplicons/euk_tax.txt)
-- [Rscripts](./dataAnalysis) and [metadata](./amplicons/metadata.txt) to reproduce analyses and figures
+- [Rscripts](./dataAnalysis) and [metadata](./dataAnalysis/metadata.txt) to reproduce analyses and figures

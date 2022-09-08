@@ -5,9 +5,6 @@
 
 # This script: calculate rarefaction and diversity indices 
 
-setwd("/AWI_MPI/FRAM/FixativeExp/Rstats")
-load("iNEXT.Rdata")
-
 # Load packages
 library(iNEXT)
 library(phyloseq)
@@ -44,7 +41,9 @@ save(
 
 rarefac.bac <- fortify(iNEXT.bac, type=1) %>%
   left_join(ENV, by=c(
-    "site"="internal_id"))
+    "site"="internal_id")) %>%
+  filter(preservation %in% c(
+    "none_ref","HgCl","Formalin"))
 
 rarefac.point.bac <- rarefac.bac[which(
   rarefac.bac$method == "observed"),]
@@ -56,7 +55,9 @@ rarefac.line.bac$method <- factor(rarefac.line.bac$method,
 
 rarefac.euk <- fortify(iNEXT.euk, type=1) %>%
   left_join(ENV, by=c(
-    "site"="internal_id"))
+    "site"="internal_id")) %>%
+  filter(preservation %in% c(
+    "none_ref","HgCl","Formalin"))
 
 rarefac.point.euk <- rarefac.euk[which(
   rarefac.euk$method == "observed"),]
@@ -72,10 +73,9 @@ rarefac.line.euk$method <- factor(rarefac.line.euk$method,
 
 cover.bac <- fortify(iNEXT.bac, type=2)  %>%
   left_join(ENV, by=c(
-    "site"="internal_id"))
-cover.euk <- fortify(iNEXT.euk, type=2) %>%
-  left_join(ENV, by=c(
-    "site"="internal_id"))
+    "site"="internal_id")) %>%
+  filter(preservation %in% c(
+    "none_ref","HgCl","Formalin"))
 
 cover.point.bac <- cover.bac [which(
   cover.bac$method == "observed"),]
@@ -84,6 +84,12 @@ cover.line.bac <- cover.bac [which(
 cover.line.bac$method <- factor(cover.line.bac$method,
     c("interpolated","extrapolated"),
     c("interpolation","extrapolation"))
+
+cover.euk <- fortify(iNEXT.euk, type=2) %>%
+  left_join(ENV, by=c(
+    "site"="internal_id")) %>%
+  filter(preservation %in% c(
+    "none_ref","HgCl","Formalin"))
 
 cover.point.euk <- cover.euk [which(
   cover.euk$method == "observed"),]
@@ -176,7 +182,6 @@ bac.div <- data.frame(
   mutate(evenness = shannon/log(richness)) %>%
   add_column(locus_tag="16S")
   
-
 ###################################
 
 # Combine EUK data

@@ -6,10 +6,7 @@
 # This script: load / format amplicons and metadata
 # Five reagents are included in the original set of fastqs
 # Here we only analyze HgCl, formalin, RNAlater and DNAgard
-# PBuffer is not evaluated (only a stabilizing PO4 buffer)
-
-setwd("/AWI_MPI/FRAM/FixativeExp/Rstats")
-load("FixExp.Rdata")
+# PBuffer is not evaluated (only a stabilizing phosphate buffer)
 
 # Load packages and colors
 library(gtools)

@@ -5,10 +5,6 @@
 
 # This script: plotting of results 
 
-setwd("/AWI_MPI/FRAM/FixativeExp/Rstats")
-load("FixExp.Rdata")
-
-# load packages and colors
 library(phyloseq)
 library(ampvis2)
 library(vegan)
@@ -21,29 +17,6 @@ library(data.table)
 library(PMCMRplus)
 library(ape)
 library(scales)
-
-
-###################################################################################
-   ###  DNA extraction yield  ###
-###################################################################################
-
-read.table(
-   "DNAconc.txt", h=T, sep="\t") %>%
-  mutate(extraction=factor(
-    extraction, levels=c("PowerWater","NucleoSpin"))) %>%
-  mutate(preservation=factor(
-    preservation, levels=c("none_ref","HgCl","Formalin"))) %>%
-ggplot(., 
-  aes(x=time, y=DNA_ng_µL, fill=preservation)) +
-geom_boxplot() + 
-scale_fill_manual(values=colors) +
-facet_grid(
-  extraction~preservation, scales="free") +
-theme_bw() +
-theme(panel.grid.minor = element_blank(),
-      axis.ticks = element_blank(),
-      axis.title.x = element_blank(),
-      legend.position = "none")
 
 
 ###################################################################################
@@ -63,11 +36,9 @@ amp_ordinate(amp_subset_samples(
   print_caption = F,
   sample_color_by = "preservation", 
   sample_shape_by = "time",
-  #sample_label_by = "sample_title",
   sample_point_size = 5) + 
   scale_shape_manual(values=c(15,18,17,19)) + 
   scale_color_manual(values=c(colors)) + 
-  #guides(fill=F, colour=F) +  
   theme_bw() +
   theme(panel.grid.minor = element_blank(),
         axis.ticks = element_blank())
@@ -88,7 +59,6 @@ amp_ordinate(amp_subset_samples(
  sample_point_size = 5) + 
   scale_shape_manual(values=c(15,18,17,19)) + 
   scale_color_manual(values=c(colors)) + 
-  #guides(fill=F, colour=F) +  
   theme_bw() +
   theme(panel.grid.minor = element_blank(),
         axis.ticks = element_blank())
@@ -196,10 +166,10 @@ plot_grid(
 
 # subset samples; Hellinger-transform
 subset.bac <- subset_samples(
-  pseq.bac.rel, preservation %in% c("HgCl","Formalin","none_ref")) %>%
+  bac.rel, preservation %in% c("HgCl","Formalin","none_ref")) %>%
   transform_sample_counts(function(x) sqrt(x / sum(x)))
 subset.euk <- subset_samples(
-  pseq.euk.rel, preservation %in% c("HgCl","Formalin","none_ref")) %>%
+  euk.rel, preservation %in% c("HgCl","Formalin","none_ref")) %>%
   transform_sample_counts(function(x) sqrt(x / sum(x)))
 
 envtype1 <- get_variable(subset.bac, "preservation") 
@@ -287,8 +257,6 @@ theme(
   axis.text.x = element_text(angle=0),
   legend.position = "bottom",
   axis.ticks = element_blank())
-theme(axis.text = element_text(size=9),
-      axis.ticks = element_blank())
 
 amp_heatmap(amp_subset_samples(
   ampvis.euk, preservation %in% c(
@@ -310,7 +278,7 @@ amp_heatmap(amp_subset_samples(
   facet_by = c("preservation","extraction"),
   group_by = "time",
   color_vector = c(values =rev(
-    scico::scico(4, palette='tokyo')))) +
+    scico(4, palette='tokyo')))) +
 geom_text(aes(
   label = round(Abundance),
   color = ifelse(
@@ -322,15 +290,39 @@ theme(
   axis.text.x = element_text(angle=0),
   legend.position = "bottom",
   axis.ticks = element_blank())
-theme(axis.text = element_text(size=9),
-    axis.ticks = element_blank())
 
 
 ############################################################################################
-   ###  TOP GENERA - Hellinger  ###
+   ###  TOP GENERA - BAC  ###
 ############################################################################################
 
-bac <- pseq.bac.rel %>%
+amp_heatmap(amp_subset_samples(
+  ampvis.bac, preservation %in% c(
+    "none_ref","HgCl","Formalin")),
+  tax_aggregate = "Genus",
+  tax_show = 13,
+  normalise = T,
+  plot_values = F,
+  round = 0,
+  max_abundance = 35,
+  min_abundance = 1,
+  plot_colorscale = "sqrt",
+  plot_legendbreaks = c(5,10,20,50),
+  facet_by = c("preservation","extraction"),
+  group_by = "time",
+  color_vector = c(values =rev(
+    scico(4, palette='tokyo')))) +
+  geom_text(aes(
+    label = round(Abundance),
+    color = ifelse(
+      Abundance < 9.5,
+      "black","white"))) +
+  scale_color_identity()
+
+#############################
+
+## HELLINGER 
+bac <- bac.rel %>%
   tax_glom("Genus") %>%
   filter_taxa(function(x) mean(x) > 0.1, T)
 otu_table(bac) = otu_table(decostand(
@@ -356,9 +348,61 @@ group_by(variable, preservation, time,
         extraction, Genus) %>%
 summarize_at(c("value"), mean) 
 
-#####################
+# export size 3 x 6
+ggplot(data=subset(
+  hel1, Genus %in% c(
+    "Colwellia","SAR11_Clade_Ia",
+    "Pseudohongiella","Sulfitobacter",
+    "Amphritea","Pseudoalteromonas",
+    "Flavobacteriaceae uc")
+  & preservation %in% c("HgCl","none_ref"))) + 
+  aes(x=time, y=value, fill=Genus) +
+  geom_bar(stat="identity",position="stack") +
+  facet_grid(~extraction) +
+  scale_fill_manual(
+    values = alpha(scico(7, palette='roma'), 0.7)) +
+  scale_y_continuous(
+    expand=c(0.02,0.02),
+    breaks=c(0,0.5,1)) +
+  ylab("Hellinger-transformed abundance") +
+  theme_bw() +
+  theme(#axis.text.x = element_text(angle=90),
+    axis.title.x=element_blank(),
+    axis.ticks = element_blank())
 
-euk <- pseq.euk.rel %>%
+
+############################################################################################
+###  TOP GENERA - EUK  ###
+############################################################################################
+
+amp_heatmap(
+  amp_subset_samples(
+    ampvis.euk, preservation %in% c(
+      "none_ref","HgCl","Formalin")),
+  tax_aggregate = "Genus",
+  tax_show = 13,
+  normalise = T,
+  plot_values = F,
+  round = 0,
+  max_abundance = 35,
+  min_abundance = 1,
+  plot_colorscale = "sqrt",
+  plot_legendbreaks = c(5,10,20,50),
+  facet_by = c("preservation","extraction"),
+  group_by = "time",
+  color_vector = c(values =rev(
+    scico(4, palette='tokyo')))) +
+  geom_text(aes(
+    label = round(Abundance),
+    color = ifelse(
+      Abundance < 9.5,
+      "black","white"))) +
+  scale_color_identity() 
+
+#############################
+
+## HELLINGER 
+euk <- euk.rel %>%
   tax_glom("Genus") %>%
   filter_taxa(function(x) mean(x) > 0.1, T)
 otu_table(euk) = otu_table(decostand(
@@ -384,41 +428,18 @@ group_by(variable, preservation, time,
         extraction, Genus) %>%
 summarize_at(c("value"), mean) 
 
-###################
-
-# export size 3 x 6
-ggplot(data=subset(
-  hel1, Genus %in% c(
-    "Colwellia","SAR11_Clade_Ia",
-    "Pseudohongiella","Sulfitobacter",
-    "Amphritea","Pseudoalteromonas",
-    "Flavobacteriaceae uc")
-  & preservation %in% c("HgCl","none_ref"))) + 
-aes(x=time, y=value, fill=Genus) +
-geom_bar(stat="identity",position="stack") +
-facet_grid(~extraction) +
-scale_fill_manual(
-  values = alpha(scico(7, palette='roma'), 0.7)) +
-scale_y_continuous(
-  expand=c(0.02,0.02),
-  breaks=c(0,0.5,1)) +
-ylab("Hellinger-transformed abundance") +
-theme_bw() +
-theme(#axis.text.x = element_text(angle=90),
-  axis.title.x=element_blank(),
-  axis.ticks = element_blank())
 
 ggplot(data=subset(
   hel2, Genus %in% c(
     "Reckertia","Stramenopiles uc",
     "MAST-1C uc","Picozoa uc",
     "Stephanoecidae D uc","Cercozoa uc",
-    "Mediophyceae uc","Protaspa-lineage uc") 
-  & preservation %in% c("HgCl","none_ref"))) +
+    "Mediophyceae uc","Protaspa-lineage uc") & 
+   preservation %in% c("HgCl","none_ref"))) +
 aes(x=time, y=value, fill=Genus) +
 geom_bar(stat="identity",position="stack") +
 scale_fill_manual(
-  values = alpha(scico(9, palette='roma'), 0.7)) +
+  values = alpha(scico(8, palette='roma'), 0.7)) +
 facet_grid(~extraction) +
 scale_y_continuous(
   expand=c(0.02,0.02),
@@ -428,4 +449,8 @@ theme_bw() +
 theme(#axis.text.x = element_text(angle=90),
       axis.title.x=element_blank(),
       axis.ticks = element_blank())
+
+#############
+# remove temp-data
+rm(bac,euk)
 

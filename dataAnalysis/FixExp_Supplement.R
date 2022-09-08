@@ -1,9 +1,10 @@
 ###################################################################################
-###  ORDINATION  -- all samples ###
+   ###  All-sample comparison ###
 ###################################################################################
 
-## BAC 
-plot_ord1 <- amp_ordinate(ampvis.bac, 
+## BAC community
+amp_ordinate(amp_subset_samples(
+  ampvis.bac, preservation!="PBuffer"),
   filter_species = 1, 
   type = "PCoA",
   distmeasure = "bray",
@@ -12,19 +13,22 @@ plot_ord1 <- amp_ordinate(ampvis.bac,
   y_axis = 2, 
   print_caption = F,
   sample_color_by = "preservation", 
-  sample_shape_by = "time",
+  #sample_shape_by = "time",
   #sample_label_by = "sample_title",
   sample_point_size = 5) + 
   scale_shape_manual(values=c(15,18,17,19)) + 
-  scale_color_manual(values=c(colors)) + 
+  scale_color_manual(values=c(colors.all)) + 
   #guides(fill=F, colour=F) +  
   theme_bw() +
   theme(panel.grid.minor = element_blank(),
-        legend.position = "none",
+        legend.position = "right",
         axis.ticks = element_blank())
 
-## EUK
-plot_ord1 <- amp_ordinate(ampvis.euk, 
+###########################
+
+## EUK community
+amp_ordinate(amp_subset_samples(
+  ampvis.euk, preservation!="PBuffer"),
   filter_species = 1, 
   type = "PCoA",
   distmeasure = "bray",
@@ -33,70 +37,51 @@ plot_ord1 <- amp_ordinate(ampvis.euk,
   y_axis = 2, 
   print_caption = F,
   sample_color_by = "preservation", 
-  sample_shape_by = "time",
+  #sample_shape_by = "time",
   sample_point_size = 5) + 
   scale_shape_manual(values=c(15,18,17,19)) + 
-  scale_color_manual(values=c(colors)) + 
+  scale_color_manual(values=c(colors.all)) + 
   #guides(fill=F, colour=F) +  
   theme_bw() +
   theme(panel.grid.minor = element_blank(),
+        legend.position = "right",
         axis.ticks = element_blank())
 
 
 ###################################################################################
-   ###  COMPOSITON -- GENUS LEVEL ###
+   ###  DNA extraction yield  ###
 ###################################################################################
 
-amp_heatmap(amp_subset_samples(
-  ampvis.bac, preservation %in% c(
-    "none_ref","HgCl","Formalin")),
-  tax_aggregate = "Genus",
-  tax_show = 15,
-  normalise = T,
-  plot_values = T,
-  round = 0,
-  max_abundance = 35,
-  min_abundance = 1,
-  plot_colorscale = "sqrt",
-  plot_legendbreaks = c(5,10,20,50),
-  facet_by = c("preservation","extraction"),
-  group_by = "time",
-  color_vector = c(values =rev(
-    scico(4, palette='tokyo')))) +
-  geom_text(aes(
-    label = round(Abundance),
-    color = ifelse(
-      Abundance < 9.5,
-      "black","white"))) +
-  scale_color_identity()
+# good fixatives
+read.table(
+  "DNAconc.txt", h=T, sep="\t") %>%
+  filter(preservation %in% c(
+    "none_ref","HgCl","Formalin")) %>%
+  mutate(extraction=factor(
+    extraction, levels=c("PowerWater","NucleoSpin"))) %>%
+  mutate(preservation=factor(
+    preservation, levels=c(
+      "none_ref","HgCl","Formalin"))) %>%
+  ggplot(., aes(
+    x=time, y=DNA_ng_µL, fill=preservation)) +
+  geom_boxplot() + 
+  scale_fill_manual(values=colors.all) +
+  facet_grid(
+    extraction~preservation, scales="free") +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.x = element_blank(),
+        legend.position = "none")
 
-amp_heatmap(
-  amp_subset_samples(
-    ampvis.euk, preservation %in% c(
-      "none_ref","HgCl","Formalin")),
-  tax_aggregate = "Genus",
-  tax_show = 15,
-  normalise = T,
-  plot_values = T,
-  round = 0,
-  max_abundance = 35,
-  min_abundance = 1,
-  plot_colorscale = "sqrt",
-  plot_legendbreaks = c(5,10,20,50),
-  facet_by = c("preservation","extraction"),
-  group_by = "time",
-  color_vector = c(values =rev(
-    scico(4, palette='tokyo')))) +
-  geom_text(aes(
-    label = round(Abundance),
-    color = ifelse(
-      Abundance < 9.5,
-      "black","white"))) +
-  scale_color_identity() 
 
-###############################
 
-## ALL REPLICATES BAC
+###################################################################################
+   ###  ALL REPLICATES ###
+###################################################################################
+
+## BAC
+## export size 4x11
 amp_heatmap(
   amp_subset_samples(
     ampvis.bac, preservation %in% c(
@@ -121,7 +106,10 @@ amp_heatmap(
   color_vector = c(values =rev(
     scico(4, palette='tokyo')))) 
 
-## ALL REPLICATES EUK - show outlier
+###############################
+
+## EUK 
+## export size 5 x 12
 amp_heatmap(
   amp_subset_samples(
     ampvis.euk, preservation %in% c(
@@ -223,6 +211,7 @@ count.euk <- rbind(
   filter(preservation %in% c(
     "HgCl","Formalin","none_ref"))
 
+
 #########################
 
 count9 <- subset_taxa(
@@ -279,8 +268,9 @@ ggplot(count.euk, aes(
   theme(axis.text.y = element_text(size=10),
         axis.title = element_blank(),
         panel.grid.minor = element_blank(),
-        strip.background = element_rect(
+        strip.background.x = element_rect(
           color = "white", size = 0.01),
+        strip.background.y = element_blank(),
         axis.ticks = element_blank()) 
 
 ggplot(count.bac, aes(
@@ -302,8 +292,9 @@ ggplot(count.bac, aes(
   theme(axis.text.y = element_text(size=10),
         axis.title = element_blank(),
         panel.grid.minor = element_blank(),
-        strip.background = element_rect(
+        strip.background.x = element_rect(
           color = "white", size = 0.01),
+        strip.background.y = element_blank(),
         axis.ticks = element_blank()) 
 
 ##############################################
@@ -312,5 +303,3 @@ ggplot(count.bac, aes(
 rm(count1,count2,count3,count4,
    count5,count6,count7,count8,
    count9,count10,count11)
-
-

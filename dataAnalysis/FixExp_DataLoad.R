@@ -1,11 +1,14 @@
 
 ############################################################################################
-   ###  Fixative Experiment - amplicon analysis  ###
+   ###  Fixative Experiment - Amplicons  ###
 ############################################################################################
 
 # This script: load / format amplicons and metadata
+# Five reagents are included in the original set of fastqs
+# Here we only analyze HgCl, formalin, RNAlater and DNAgard
+# PBuffer is not evaluated (only a stabilizing PO4 buffer)
 
-setwd("D:/AWI_MPI/FRAM/FixativeExp/Rstats")
+setwd("/AWI_MPI/FRAM/FixativeExp/Rstats")
 load("FixExp.Rdata")
 
 # Load packages and colors
@@ -13,6 +16,7 @@ library(gtools)
 library(dplyr)
 library(phyloseq)
 library(ampvis2)
+library(ggplot2)
 
 
 ############################################################################################
@@ -73,7 +77,7 @@ euk.otu <- euk.otu[mixedorder(euk.otu$Row.names),]
 rownames(euk.otu) = euk.otu$Row.names
 euk.otu <- euk.otu[, -c(1,140:146)]
 
-# confirm natural order of rows (OTU1, OTU2 etc)
+# Confirm natural row order (OTU1, OTU2 etc)
 bac.otu <- bac.otu[mixedorder(rownames(bac.otu)),]
 bac.tax <- bac.tax[mixedorder(rownames(bac.tax)),]
 
@@ -189,17 +193,17 @@ ENV$extraction <- factor(ENV$extraction, levels = c(
 
 #################################
 
-# assign sample_title colnames to OTU tables
+# Import Gfbio sample_titles
 names.bac <- read.table("names_bac.txt", header=T)
 names.euk <- read.table("names_euk.txt", header=T)
 
-# ensure natural order
+# Sort naturally
 bac.otu <- bac.otu[,mixedsort(names(bac.otu))]
 euk.otu <- euk.otu[,mixedsort(names(euk.otu))]
 names.bac <- names.bac[mixedorder(names.bac$swarm_id),]
 names.euk <- names.euk[mixedorder(names.euk$swarm_id),]
 
-# rename
+# Rename
 names(bac.otu) = names.bac$internal_id
 names(euk.otu) <- names.euk$internal_id
 
@@ -211,7 +215,7 @@ row.names(bac.env) = bac.env$internal_id
 euk.env <- subset(ENV, locus_tag=="18S")
 row.names(euk.env) = euk.env$internal_id
 
-# confirm consistent order 
+# Confirm consistent order 
 bac.otu <- bac.otu[,mixedsort(names(bac.otu))]
 euk.otu <- euk.otu[,mixedsort(names(euk.otu))]
 bac.env <- bac.env[mixedorder(bac.env$internal_id),]
@@ -232,7 +236,7 @@ asv = otu_table(bac.otu, taxa_are_rows=T)
 tax = tax_table(bac.tax)
 rownames(tax) <- rownames(asv)
 
-pseq.bac.abs <- phyloseq(
+bac.abs <- phyloseq(
   otu_table(asv, taxa_are_rows=F), 
   sample_data(bac.env), 
   tax_table(tax)) %>%
@@ -240,7 +244,7 @@ pseq.bac.abs <- phyloseq(
     sum(x>3) > (0.03*length(x)), T)
 
 # Fix tax-IDs
-colnames(pseq.bac.abs@tax_table) <- c(
+colnames(bac.abs@tax_table) <- c(
  "Kingdom","Phylum","Class","Order",
  "Family","Genus","Species")
 
@@ -250,7 +254,7 @@ asv = otu_table(euk.otu, taxa_are_rows=T)
 tax = tax_table(euk.tax)
 rownames(tax) <- rownames(asv)
 
-pseq.euk.abs <- phyloseq(
+euk.abs <- phyloseq(
   otu_table(asv, taxa_are_rows=F), 
   sample_data(euk.env), 
   tax_table(tax)) %>%
@@ -258,7 +262,7 @@ pseq.euk.abs <- phyloseq(
     sum(x>3) > (0.03*length(x)), T)
 
 # Fix tax-IDs
-colnames(pseq.euk.abs@tax_table) <- c(
+colnames(euk.abs@tax_table) <- c(
   "Kingdom","Phylum","Class","Order",
   "Family","Genus","Species")
 
@@ -266,10 +270,10 @@ colnames(pseq.euk.abs@tax_table) <- c(
 
 ## transform to rel. abundance
 
-pseq.bac.rel = transform_sample_counts(
-  pseq.bac.abs, function(x) x / sum(x) * 100) 
-pseq.euk.rel = transform_sample_counts(
-  pseq.euk.abs, function(x) x / sum(x) * 100) 
+bac.rel = transform_sample_counts(
+  bac.abs, function(x) x / sum(x) * 100) 
+euk.rel = transform_sample_counts(
+  euk.abs, function(x) x / sum(x) * 100) 
 
 
 ############################################################################################
@@ -278,31 +282,31 @@ pseq.euk.rel = transform_sample_counts(
 
 ampvis.bac <- data.frame(
   OTU = rownames(
-    phyloseq::otu_table(pseq.bac.abs)@.Data),
-  phyloseq::otu_table(pseq.bac.abs)@.Data,
-  phyloseq::tax_table(pseq.bac.abs)@.Data,
+    phyloseq::otu_table(bac.abs)@.Data),
+  phyloseq::otu_table(bac.abs)@.Data,
+  phyloseq::tax_table(bac.abs)@.Data,
   check.names = F)
 env <- data.frame(
-  phyloseq::sample_data(pseq.bac.abs), 
+  phyloseq::sample_data(bac.abs), 
   check.names = F) %>%
-  mutate(Sample=rownames(.), .before = sample_title)
+  mutate(Sample=rownames(.), .before=sample_title)
 ampvis.bac <- amp_load(ampvis.bac, env)
 
 ampvis.euk <- data.frame(
   OTU = rownames(
-    phyloseq::otu_table(pseq.euk.abs)@.Data),
-  phyloseq::otu_table(pseq.euk.abs)@.Data,
-  phyloseq::tax_table(pseq.euk.abs)@.Data,
+    phyloseq::otu_table(euk.abs)@.Data),
+  phyloseq::otu_table(euk.abs)@.Data,
+  phyloseq::tax_table(euk.abs)@.Data,
   check.names = F)
 env <- data.frame(
-  phyloseq::sample_data(pseq.euk.abs), 
+  phyloseq::sample_data(euk.abs), 
   check.names = F) %>%
-  mutate(Sample=rownames(.), .before = sample_title)
+  mutate(Sample=rownames(.), .before=sample_title)
 ampvis.euk <- amp_load(ampvis.euk, env)
 
 
 ############################################################################################
-   ### set plotting options ###
+   ### Set plotting options ###
 ############################################################################################
   
 colors.all <- c(
@@ -310,8 +314,7 @@ colors.all <- c(
   "HgCl" = "#2a7fff", 
   "Formalin" = "#f7bd10",
   "RNAlater" = "seagreen4",
-  "DNAgard" ="navajowhite3",
-  "PBuffer" = "lightcoral")
+  "DNAgard" = "navajowhite3")
 
 colors <- c(
   "none_ref" = "#50516b",
@@ -340,5 +343,4 @@ theme_classic2 <- function(
 # remove temporary datasets
 rm(asv, tax, env, i, j, k)
 
-save.image("FixExp.Rdata")
 
